@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Program</title>
+</head>
+<body>
+    <h1>Weather Program</h1>
+
+    <label for="cityInput">Enter City Name:</label>
+    <input type="text" id="cityInput">
+    <button onclick="searchWeather()">Search</button>
+
+    <div id="weatherInfo"></div>
+
+    <script>
+        // API key
+        const apiKey = '7b00fc98a881983ec86783c8f647b859';
+
+        // Function to fetch city information
+        async function getCityInfo(cityName) {
+            const response = await fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=5&appid=${apiKey}`);
+            const data = await response.json();
+            return data[0];
+        }
+
+        // Function to fetch weather data using latitude and longitude
+        async function getWeather(lat, lon) {
+            const response = await fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}`);
+            const data = await response.json();
+            return data;
+        }
+
+        // Function to display weather information
+        async function displayWeather(cityName) {
+            try {
+                const cityInfo = await getCityInfo(cityName);
+                const weatherData = await getWeather(cityInfo.lat, cityInfo.lon);
+                const weatherInfoDiv = document.getElementById('weatherInfo');
+
+                // Convert temperature to Celsius
+                const tempCelsius = weatherData.current.temp - 273.15;
+                const feelsLikeCelsius = weatherData.current.feels_like - 273.15;
+
+                // Convert temperature to Fahrenheit
+                const tempFahrenheit = (tempCelsius * 9/5) + 32;
+                const feelsLikeFahrenheit = (feelsLikeCelsius * 9/5) + 32;
+
+                weatherInfoDiv.innerHTML = `
+                    <h2>Weather in ${cityName}</h2>
+                    <p>Origin Current Temperature: ${weatherData.current.temp} K</p>
+                    <p>Current Temperature: ${tempCelsius.toFixed(2)}°C (${tempFahrenheit.toFixed(2)}°F)</p>
+                    <p>Origin Feels Like: ${weatherData.current.feels_like} K</p>
+                    <p>Feels Like: ${feelsLikeCelsius.toFixed(2)}°C (${feelsLikeFahrenheit.toFixed(2)}°F)</p>
+                    <p>Weather Description: ${weatherData.current.weather[0].description}</p>
+                `;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Function to search weather by city name
+        function searchWeather() {
+            const cityName = document.getElementById('cityInput').value;
+            displayWeather(cityName);
+        }
+    </script>
+</body>
+</html>
